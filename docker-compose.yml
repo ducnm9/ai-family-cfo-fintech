@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: family_cfo
+      POSTGRES_USER: cfo_user
+      POSTGRES_PASSWORD: cfo_secret_2026
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cfo_user -d family_cfo"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: postgresql://cfo_user:cfo_secret_2026@db:5432/family_cfo
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production-abc123xyz}
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://frontend:3000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:

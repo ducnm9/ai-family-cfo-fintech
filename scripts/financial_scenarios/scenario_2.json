@@ -1,0 +1,32 @@
+{
+  "scenario_id": "scenario_2",
+  "income": [
+    {
+      "source": "salary",
+      "amount": 24000000
+    }
+  ],
+  "expenses": [
+    {
+      "category": "living",
+      "amount": 9000000
+    }
+  ],
+  "debts": [
+    {
+      "type": "loan",
+      "principal": 28000000,
+      "interest_rate": 0.18,
+      "minimum_payment": 2000000
+    }
+  ],
+  "savings": {
+    "balance": 5000000
+  },
+  "goals": [
+    {
+      "type": "emergency_fund",
+      "target": 60000000
+    }
+  ]
+}

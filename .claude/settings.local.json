@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(rm:*)",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(npm run:*)",
+      "Bash(lsof:*)",
+      "Bash(curl:*)",
+      "Bash(mkdir:*)",
+      "Bash(echo === Register ===:*)",
+      "Bash(kill:*)",
+      "Bash(docker compose:*)",
+      "Bash(echo === Backend ===:*)",
+      "Bash(echo:*)",
+      "Bash(__NEW_LINE_6759dc341a132efe__:*)",
+      "Bash(bash:*)"
+    ]
+  }
+}
