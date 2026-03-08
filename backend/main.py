@@ -2,13 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routes import router as finance_router
 from routes_v2 import v2_router
+from routes_v3 import v3_router
 from auth.routes import router as auth_router, profile_router
 from db.database import init_db
 
 app = FastAPI(
     title="AI Family CFO",
     description="AI-powered household financial planning and simulation engine",
-    version="2.0.0",
+    version="3.0.0",
 )
 
 import os
@@ -30,6 +31,7 @@ app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(finance_router)  # V1 routes (backward compatible)
 app.include_router(v2_router)       # V2 intelligence routes
+app.include_router(v3_router)       # V3 life planning routes
 
 
 @app.on_event("startup")
@@ -39,7 +41,7 @@ def startup():
 
 @app.get("/")
 def root():
-    return {"status": "AI Family CFO API running", "version": "2.0.0"}
+    return {"status": "AI Family CFO API running", "version": "3.0.0"}
 
 
 @app.get("/health")

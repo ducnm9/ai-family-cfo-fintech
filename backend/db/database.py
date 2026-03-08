@@ -133,6 +133,45 @@ def init_db():
             UNIQUE(user_id, month)
         );
     """)
+    # V3 tables
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_assets (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            asset_type TEXT NOT NULL DEFAULT 'other',
+            value NUMERIC NOT NULL DEFAULT 0,
+            annual_return_pct NUMERIC NOT NULL DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS user_goals (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            goal_type TEXT NOT NULL DEFAULT 'custom',
+            target_amount NUMERIC NOT NULL,
+            current_amount NUMERIC NOT NULL DEFAULT 0,
+            priority INTEGER NOT NULL DEFAULT 3,
+            deadline_months INTEGER,
+            created_at TIMESTAMP DEFAULT NOW(),
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS ai_memory (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            category TEXT NOT NULL,
+            content TEXT NOT NULL,
+            metadata JSONB NOT NULL DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_ai_memory_user_cat ON ai_memory(user_id, category);
+    """)
     conn.commit()
     cur.close()
     conn.close()
