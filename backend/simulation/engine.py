@@ -55,6 +55,17 @@ def simulate_cashflow(profile: HouseholdProfile) -> dict:
         if monthly_essential > 0 else 0
     )
 
+    # Financial Stress Index (FINANCIAL_ALGORITHMS.md Section 4)
+    # stress_index = mandatory_expenses / income
+    # < 0.5 Healthy | 0.5-0.7 Moderate | > 0.7 High Stress
+    stress_index = (monthly_essential / gross_income) if gross_income > 0 else 1.0
+    if stress_index < 0.5:
+        stress_level = "healthy"
+    elif stress_index <= 0.7:
+        stress_level = "moderate"
+    else:
+        stress_level = "high"
+
     return {
         "gross_income": round(gross_income, 2),
         "estimated_tax": round(estimated_tax, 2),
@@ -65,10 +76,13 @@ def simulate_cashflow(profile: HouseholdProfile) -> dict:
         "total_debt_payments": round(total_debt_payments, 2),
         "total_debt_balance": round(total_debt_balance, 2),
         "monthly_buffer": round(monthly_buffer, 2),
+        "monthly_essential": round(monthly_essential, 2),
         "savings_rate_pct": round(savings_rate, 1),
         "debt_to_income_pct": round(debt_to_income, 1),
         "housing_ratio_pct": round(housing_ratio, 1),
         "emergency_fund_months": round(emergency_fund_months, 1),
+        "stress_index": round(stress_index, 3),
+        "stress_level": stress_level,
         "expense_breakdown": compute_expense_breakdown(profile),
         "health_score": compute_health_score(
             savings_rate, debt_to_income, housing_ratio, emergency_fund_months

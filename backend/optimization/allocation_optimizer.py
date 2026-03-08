@@ -19,11 +19,17 @@ def optimize_allocation(profile: HouseholdProfile) -> dict:
     emergency_months = cf["emergency_fund_months"]
 
     if monthly_buffer <= 0:
+        variable = cf["variable_expenses"]
         return {
             "has_surplus": False,
             "monthly_buffer": round(monthly_buffer, 2),
             "message": "No surplus to allocate. Focus on reducing expenses or increasing income.",
             "allocations": [],
+            "payoff_impact": None,
+            "reasoning": ["Negative cashflow — reduce expenses first"],
+            "recommended_debt_payment": round(cf["total_debt_payments"], 2),
+            "recommended_savings_rate": 0,
+            "recommended_expense_reduction": round(abs(monthly_buffer) + variable * 0.1, 2),
         }
 
     surplus = monthly_buffer
@@ -108,6 +114,19 @@ def optimize_allocation(profile: HouseholdProfile) -> dict:
             "interest_saved": round(base_payoff["total_interest_paid"] - optimized_payoff["total_interest_paid"], 2),
         }
 
+    # ENGINE_INTERFACES.md Section 5: structured recommendations
+    total_to_debt = sum(a["amount"] for a in allocations if "debt" in a["target"])
+    total_to_savings = sum(a["amount"] for a in allocations if a["target"] in ("emergency_fund", "savings_investment"))
+    recommended_savings_rate = round((total_to_savings / cf["net_income"] * 100) if cf["net_income"] > 0 else 0, 1)
+
+    # Expense reduction recommendation: if buffer is negative or stress is high
+    stress_index = cf.get("stress_index", 0)
+    recommended_expense_reduction = 0
+    if cf["monthly_buffer"] <= 0:
+        recommended_expense_reduction = round(abs(cf["monthly_buffer"]) * 1.1, 2)  # 10% more than deficit
+    elif stress_index > 0.7 and cf["variable_expenses"] > 0:
+        recommended_expense_reduction = round(cf["variable_expenses"] * 0.15, 2)  # cut 15% discretionary
+
     return {
         "has_surplus": True,
         "monthly_buffer": round(cf["monthly_buffer"], 2),
@@ -115,4 +134,8 @@ def optimize_allocation(profile: HouseholdProfile) -> dict:
         "total_allocated": round(sum(a["amount"] for a in allocations), 2),
         "payoff_impact": payoff_impact,
         "reasoning": reasoning,
+        # ENGINE_INTERFACES.md compliant fields
+        "recommended_debt_payment": round(total_to_debt + cf["total_debt_payments"], 2),
+        "recommended_savings_rate": recommended_savings_rate,
+        "recommended_expense_reduction": recommended_expense_reduction,
     }

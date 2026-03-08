@@ -8,6 +8,7 @@ class RiskFlag:
     HIGH_DEBT_RATIO = "HIGH_DEBT_RATIO"
     LOW_EMERGENCY_FUND = "LOW_EMERGENCY_FUND"
     HIGH_EXPENSE_RATIO = "HIGH_EXPENSE_RATIO"
+    HIGH_STRESS = "HIGH_STRESS"
     NEGATIVE_CASHFLOW = "NEGATIVE_CASHFLOW"
     HIGH_INTEREST_DEBT = "HIGH_INTEREST_DEBT"
     SINGLE_INCOME_DEPENDENCY = "SINGLE_INCOME_DEPENDENCY"
@@ -54,6 +55,15 @@ def assess_risk(profile: HouseholdProfile) -> dict:
         flags.append({"flag": RiskFlag.LOW_EMERGENCY_FUND, "severity": "high", "value": round(emergency_months, 1), "threshold": 3})
         risk_score += 10
 
+    # Financial Stress Index (ENGINE_INTERFACES.md: HIGH_STRESS flag)
+    stress_index = cf.get("stress_index", 0)
+    if stress_index > 0.7:
+        flags.append({"flag": RiskFlag.HIGH_STRESS, "severity": "critical", "value": round(stress_index, 3), "threshold": 0.7})
+        risk_score += 15
+    elif stress_index > 0.5:
+        flags.append({"flag": RiskFlag.HIGH_STRESS, "severity": "medium", "value": round(stress_index, 3), "threshold": 0.5})
+        risk_score += 5
+
     # Negative cashflow
     if monthly_buffer < 0:
         flags.append({"flag": RiskFlag.NEGATIVE_CASHFLOW, "severity": "critical", "value": round(monthly_buffer, 2), "threshold": 0})
@@ -95,6 +105,8 @@ def assess_risk(profile: HouseholdProfile) -> dict:
         "metrics": {
             "debt_ratio": round(debt_ratio, 1),
             "expense_ratio": round(expense_ratio, 1),
+            "stress_index": round(stress_index, 3),
+            "stress_level": cf.get("stress_level", "unknown"),
             "emergency_months": round(emergency_months, 1),
             "monthly_buffer": round(monthly_buffer, 2),
             "savings_rate": round(cf["savings_rate_pct"], 1),

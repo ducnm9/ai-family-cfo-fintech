@@ -10,26 +10,26 @@ def compute_financial_score(profile: HouseholdProfile, goal_progress: float = 0)
     """
     Calculate a weighted financial health score (0-100).
 
-    Weights:
-    - debt_ratio:    25% (lower is better)
+    Weights per FINANCIAL_ALGORITHMS.md:
+    - debt_ratio:    30% (lower is better)
     - savings_rate:  25% (higher is better)
     - resilience:    25% (higher is better)
-    - goal_progress: 25% (0-1 scale, provided externally)
+    - goal_progress: 20% (0-1 scale, provided externally)
     """
     cf = simulate_cashflow(profile)
     risk = assess_risk(profile)
     resilience = assess_resilience(profile)
 
-    # Debt ratio score (0-25): lower debt ratio = higher score
+    # Debt ratio score (0-30): lower debt ratio = higher score
     debt_ratio = risk["metrics"]["debt_ratio"]
     if debt_ratio <= 10:
-        debt_score = 25
+        debt_score = 30
     elif debt_ratio <= 20:
-        debt_score = 20
+        debt_score = 24
     elif debt_ratio <= 36:
-        debt_score = 12
+        debt_score = 15
     elif debt_ratio <= 50:
-        debt_score = 5
+        debt_score = 6
     else:
         debt_score = 0
 
@@ -57,8 +57,8 @@ def compute_financial_score(profile: HouseholdProfile, goal_progress: float = 0)
     else:
         resilience_score = 0
 
-    # Goal progress score (0-25): 0-1 scale
-    goal_score = round(min(1.0, max(0, goal_progress)) * 25)
+    # Goal progress score (0-20): 0-1 scale
+    goal_score = round(min(1.0, max(0, goal_progress)) * 20)
 
     total = debt_score + savings_score + resilience_score + goal_score
 
@@ -78,10 +78,10 @@ def compute_financial_score(profile: HouseholdProfile, goal_progress: float = 0)
         "max_score": 100,
         "grade": grade,
         "breakdown": {
-            "debt_ratio": {"score": debt_score, "max": 25, "value": round(debt_ratio, 1)},
+            "debt_ratio": {"score": debt_score, "max": 30, "value": round(debt_ratio, 1)},
             "savings_rate": {"score": savings_score, "max": 25, "value": round(savings_rate, 1)},
             "resilience": {"score": resilience_score, "max": 25, "value": round(res_months, 1)},
-            "goal_progress": {"score": goal_score, "max": 25, "value": round(goal_progress * 100, 1)},
+            "goal_progress": {"score": goal_score, "max": 20, "value": round(goal_progress * 100, 1)},
         },
         "risk_level": risk["risk_level"],
         "resilience_level": resilience["resilience_level"],

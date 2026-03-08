@@ -150,6 +150,41 @@ def generate_v2_recommendations(
             "action_type": "maintain",
         })
 
+    # ENGINE_INTERFACES.md Section 6: explanations + projected_improvements
+    explanations = []
+    projected_improvements = []
+
+    if cashflow["stress_level"] == "high":
+        explanations.append(f"Financial stress is high (index: {cashflow['stress_index']:.2f}). Mandatory expenses consume over 70% of income.")
+    if risk["risk_level"] in ("high", "critical"):
+        explanations.append(f"Risk level is {risk['risk_level']} with {len(risk['flags'])} active flags.")
+    if resilience["resilience_months"] < 3:
+        explanations.append(f"Resilience is {resilience['resilience_level']}: only {resilience['resilience_months']} months of emergency runway.")
+    if cashflow["monthly_buffer"] > 0:
+        explanations.append(f"Monthly surplus of {cashflow['monthly_buffer']:,.0f} available for optimization.")
+
+    if allocation["has_surplus"] and allocation.get("payoff_impact"):
+        pi = allocation["payoff_impact"]
+        if pi["months_saved"] > 0:
+            projected_improvements.append({
+                "action": "Allocate extra to debt",
+                "metric": "debt_payoff_months",
+                "current": pi["base_months"],
+                "projected": pi["optimized_months"],
+                "improvement": f"{pi['months_saved']} months earlier, save {pi['interest_saved']:,.0f} interest",
+            })
+
+    if allocation.get("recommended_expense_reduction", 0) > 0:
+        cut = allocation["recommended_expense_reduction"]
+        new_buffer = cashflow["monthly_buffer"] + cut
+        projected_improvements.append({
+            "action": f"Reduce discretionary spending by {cut:,.0f}",
+            "metric": "monthly_buffer",
+            "current": round(cashflow["monthly_buffer"], 2),
+            "projected": round(new_buffer, 2),
+            "improvement": f"Buffer improves to {new_buffer:,.0f}/mo",
+        })
+
     return {
         "financial_score": score,
         "risk_assessment": risk,
@@ -159,4 +194,6 @@ def generate_v2_recommendations(
         },
         "allocation": allocation,
         "recommendations": sorted(recommendations, key=lambda r: r["priority"]),
+        "explanations": explanations,
+        "projected_improvements": projected_improvements,
     }

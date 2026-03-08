@@ -69,10 +69,13 @@ def generate_timelines(profile: HouseholdProfile, months: int = 60) -> dict:
             "total_savings": round(savings, 2),
         })
 
-        is_stress = monthly_buffer < 0
+        # Stress index per month = mandatory / income
+        month_stress = ((total_expenses + total_debt_payments) / net_income) if net_income > 0 else 1.0
+        is_stress = monthly_buffer < 0 or month_stress > 0.7
         stress_timeline.append({
             "month": m,
             "is_stress": is_stress,
+            "stress_index": round(month_stress, 3),
             "buffer": round(monthly_buffer, 2),
         })
 
